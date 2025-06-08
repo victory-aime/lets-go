@@ -74,6 +74,7 @@ export const Notifications = () => {
       ) : (
         <View style={styles.container}>
           <Text style={styles.title}>🔔 Notifications</Text>
+
           <FlatList
             data={notifications}
             keyExtractor={(item) => item.id}

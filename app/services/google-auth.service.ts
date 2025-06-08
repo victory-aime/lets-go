@@ -12,7 +12,7 @@ export function useGoogleAuth() {
       "223778959506-3gfivakhm26irc248g27jrivs948l0ki.apps.googleusercontent.com",
     iosClientId:
       "223778959506-3gfivakhm26irc248g27jrivs948l0ki.apps.googleusercontent.com",
-    //androidClientId: "TON_ANDROID_CLIENT_ID",
+    androidClientId: "TON_ANDROID_CLIENT_ID",
     //webClientId:"223778959506-0djoee70qjin43qjrdn7p4bk8h3vkrn2.apps.googleusercontent.com",
   });
   useEffect(() => {

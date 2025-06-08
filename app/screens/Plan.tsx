@@ -16,8 +16,9 @@ import { useNotifications } from "../hooks/useNotifications";
 import { NotificationPayload } from "@/app/services/notification.service";
 import { useEventService } from "../hooks/useEvents";
 import { useTypedNavigation } from "../hooks/useTypedNavigation";
+import { IUser } from "../services/users.service";
 
-export const PlanDetailsScreen = ({
+export const Plan = ({
   route,
 }: AppStackcreenProps<AppStackRoutes.PLAN_DETAILS>) => {
   const navigation = useTypedNavigation<TabRouteParams>();
@@ -34,8 +35,8 @@ export const PlanDetailsScreen = ({
   const { getFriendsByIds, user: userData } = useUser(user?.uid);
   const friends = getFriendsByIds(userData?.friends);
 
-  const filteredFriends = friends?.data?.filter((u) =>
-    u.username?.toLowerCase()
+  const filteredFriends = friends?.data?.filter((user: IUser) =>
+    user.username?.toLowerCase()
   );
 
   const toggleFriend = (name: string) => {
@@ -49,10 +50,10 @@ export const PlanDetailsScreen = ({
 
     try {
       // Étape 1 – Mapper les usernames vers les uids
-      const invitedUsers = friends?.data?.filter((u) =>
-        selectedFriends.includes(u.username)
+      const invitedUsers = friends?.data?.filter((user: IUser) =>
+        selectedFriends.includes(user.username)
       );
-      const invitedUserIds = invitedUsers?.map((u) => u.uid) ?? [];
+      const invitedUserIds = invitedUsers?.map((user: IUser) => user.uid) ?? [];
 
       // Étape 2 – Créer l'événement dans Firestore
       const event = await createEvent.mutateAsync({

@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     padding: 18,
     marginVertical: 8,
     borderRadius: 14,
-    alignItems: "center",
+    alignItems: "flex-start",
   },
   optionText: {
     fontSize: 18,

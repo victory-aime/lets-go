@@ -3,7 +3,7 @@ import { AppStackParams, AppStackRoutes } from "./enums/routes";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import TabsNavigation from "./TabsNavigation";
 import { HotActionsScreen } from "../screens/HotActionsScreen";
-import { PlanDetailsScreen } from "../screens/PlanDetail";
+import { Plan } from "../screens/Plan";
 import { Notifications } from "../screens/Notifications";
 import { FriendRequestsScreen } from "../screens/RequestFriends";
 import { AddFriends } from "../screens/AddFriends";
@@ -29,7 +29,7 @@ export const AppNavigator = () => {
         />
         <AppStack.Screen
           name={AppStackRoutes.PLAN_DETAILS}
-          component={PlanDetailsScreen}
+          component={Plan}
           options={{ presentation: "modal", headerShown: false }}
         />
         <AppStack.Screen
