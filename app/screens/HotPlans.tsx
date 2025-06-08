@@ -1,72 +1,93 @@
-import React from "react";
-import { FlatList, TouchableOpacity, StyleSheet, Image } from "react-native";
+import React, { useMemo } from "react";
+import {
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  ActivityIndicator,
+} from "react-native";
 import { View, Text } from "@/app/theme/Theme";
 import { useTheme } from "../theme/context/ThemeProvider";
 import { SafeAreaWrapper } from "@/components/safe-area";
+import { useEventService } from "../hooks/useEvents";
+import { useAuth } from "../context/AuthContext";
 
-const mockPlans = [
-  {
-    id: "1",
-    title: "Soirée rooftop 🍸",
-    description: "Vue panoramique, cocktails et DJ set jusqu'à 2h du matin.",
-    image:
-      "https://images.unsplash.com/photo-1600891964599-f61ba0e24092?auto=format&fit=crop&w=800&q=80",
-    time: "Ce soir à 21h",
-  },
-  {
-    id: "2",
-    title: "Match entre potes ⚽",
-    description: "Foot au terrain du parc, ramène tes crampons !",
-    image:
-      "https://images.unsplash.com/photo-1584467735871-f0960c490b30?auto=format&fit=crop&w=800&q=80",
-    time: "Demain à 18h",
-  },
-  {
-    id: "3",
-    title: "Session chill 🍿",
-    description: "Film + pizzas chez moi. Ramène ton plaid !",
-    image:
-      "https://images.unsplash.com/photo-1583301289013-9b09f0a7d41d?auto=format&fit=crop&w=800&q=80",
-    time: "Ce soir à 20h",
-  },
+const eventImages = [
+  "https://images.unsplash.com/photo-1600891964599-f61ba0e24092?auto=format&fit=crop&w=800&q=80",
+  "https://images.unsplash.com/photo-1584467735871-f0960c490b30?auto=format&fit=crop&w=800&q=80",
+  "https://images.unsplash.com/photo-1583301289013-9b09f0a7d41d?auto=format&fit=crop&w=800&q=80",
+  "https://images.unsplash.com/photo-1528763380143-df551fdc1001?auto=format&fit=crop&w=800&q=80",
+  "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?auto=format&fit=crop&w=800&q=80",
 ];
 
 export const HotPlansScreen = () => {
   const { colors } = useTheme();
+  const { user } = useAuth();
+  const { getEvents } = useEventService(user?.uid);
+  const { data: allUserEvents, isLoading } = getEvents();
+
+  const eventsWithImages = useMemo(() => {
+    if (!allUserEvents) return [];
+    return allUserEvents?.map((event) => ({
+      ...event,
+      image: eventImages[Math.floor(Math.random() * eventImages.length)],
+    }));
+  }, [allUserEvents]);
 
   return (
-    <SafeAreaWrapper style={styles.container}>
-      <Text style={styles.title}>🔥 Plans chauds du moment</Text>
-      <FlatList
-        data={mockPlans}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingBottom: 80 }}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[styles.card, { backgroundColor: colors.surface }]}
-          >
-            <Image source={{ uri: item.image }} style={styles.image} />
-            <View style={styles.cardContent}>
-              <Text style={[styles.planTitle, { color: colors.text }]}>
-                {item.title}
-              </Text>
-              <Text style={[styles.planDesc, { color: colors.onBackground }]}>
-                {item.description}
-              </Text>
-              <View style={styles.footer}>
-                <Text style={[styles.timeText, { color: colors.primary }]}>
-                  {item.time}
-                </Text>
-                <View
-                  style={[styles.badge, { backgroundColor: colors.primary }]}
-                >
-                  <Text style={styles.badgeText}>🔥 HOT</Text>
+    <SafeAreaWrapper style={{ flex: 1 }}>
+      <View style={styles.container}>
+        <Text style={styles.title}>🔥 Vos Plans chauds du moment</Text>
+        {isLoading ? (
+          <ActivityIndicator size="large" color={colors.primary} />
+        ) : (
+          <FlatList
+            data={eventsWithImages}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={{ paddingBottom: 80 }}
+            ListEmptyComponent={() => <Text>Aucun events</Text>}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={[styles.card, { backgroundColor: colors.surface }]}
+              >
+                <Image source={{ uri: item.image }} style={styles.image} />
+                <View style={styles.cardContent}>
+                  <Text style={[styles.planTitle, { color: colors.text }]}>
+                    {item.title}
+                  </Text>
+                  <Text
+                    style={[styles.planDesc, { color: colors.onBackground }]}
+                    numberOfLines={2}
+                  >
+                    {item.description}
+                  </Text>
+                  <View style={styles.footer}>
+                    <Text style={[styles.timeText, { color: colors.primary }]}>
+                      {item.createdAt?.toDate
+                        ? item.createdAt.toDate().toLocaleString("fr-FR", {
+                            day: "2-digit",
+                            month: "short",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : "À venir"}
+                    </Text>
+
+                    <View
+                      style={[
+                        styles.badge,
+                        { backgroundColor: colors.primary },
+                      ]}
+                    >
+                      <Text style={styles.badgeText}>🔥 HOT</Text>
+                    </View>
+                  </View>
                 </View>
-              </View>
-            </View>
-          </TouchableOpacity>
+              </TouchableOpacity>
+            )}
+          />
         )}
-      />
+      </View>
     </SafeAreaWrapper>
   );
 };

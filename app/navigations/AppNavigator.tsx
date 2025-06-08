@@ -4,6 +4,9 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import TabsNavigation from "./TabsNavigation";
 import { HotActionsScreen } from "../screens/HotActionsScreen";
 import { PlanDetailsScreen } from "../screens/PlanDetail";
+import { Notifications } from "../screens/Notifications";
+import { FriendRequestsScreen } from "../screens/RequestFriends";
+import { AddFriends } from "../screens/AddFriends";
 
 const AppStack = createNativeStackNavigator<AppStackParams>();
 
@@ -27,6 +30,21 @@ export const AppNavigator = () => {
         <AppStack.Screen
           name={AppStackRoutes.PLAN_DETAILS}
           component={PlanDetailsScreen}
+          options={{ presentation: "modal", headerShown: false }}
+        />
+        <AppStack.Screen
+          name={AppStackRoutes.NOTIFICATIONS}
+          component={Notifications}
+          options={{ presentation: "modal", headerShown: false }}
+        />
+        <AppStack.Screen
+          name={AppStackRoutes.FRIENDS_REQUEST_LIST}
+          component={FriendRequestsScreen}
+          options={{ presentation: "modal", headerShown: false }}
+        />
+        <AppStack.Screen
+          name={AppStackRoutes.ADD_FRIENDS}
+          component={AddFriends}
           options={{ presentation: "modal", headerShown: false }}
         />
       </AppStack.Navigator>

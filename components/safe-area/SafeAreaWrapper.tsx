@@ -1,8 +1,9 @@
 import React from "react";
-import { View, ViewStyle, StyleSheet } from "react-native";
+import { ViewStyle, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SafeAreaWrapperProps } from "./interface/safe-area";
 import { useTheme } from "@/app/theme/context/ThemeProvider";
+import { View } from "@/app/theme/Theme";
 
 const SafeAreaWrapper: React.FC<SafeAreaWrapperProps> = ({
   children,

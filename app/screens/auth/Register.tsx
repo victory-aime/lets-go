@@ -1,5 +1,3 @@
-// app/screens/Register.tsx
-
 import React, { useState } from "react";
 import {
   StyleSheet,
@@ -11,8 +9,9 @@ import {
 import { View, Text } from "@/app/theme/Theme";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { useTheme } from "@/app/theme/context/ThemeProvider";
-import { auth } from "@/app/services/firebase";
+import { auth } from "@/app/services/firebase.service";
 import { useNavigation } from "@react-navigation/native";
+import { createOrUpdateUser } from "@/app/services/users.service";
 
 export const Register = () => {
   const { colors } = useTheme();
@@ -22,8 +21,13 @@ export const Register = () => {
 
   const handleRegister = async () => {
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      Alert.alert("Inscription réussie", "Vous êtes maintenant connecté.");
+      const response = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      await createOrUpdateUser(response.user);
+      Alert.alert("Inscription réussie");
       navigation.goBack(); // ou directement vers "Home"
     } catch (error: any) {
       Alert.alert("Erreur", error.message);

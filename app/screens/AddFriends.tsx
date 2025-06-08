@@ -3,55 +3,56 @@ import {
   FlatList,
   StyleSheet,
   TextInput,
+  TouchableOpacity,
   Image,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { View, Text } from "@/app/theme/Theme";
 import { useTheme } from "@/app/theme/context/ThemeProvider";
 import { SafeAreaWrapper } from "@/components/safe-area";
 import { useAuth } from "@/app/context/AuthContext";
+import { Ionicons } from "@expo/vector-icons";
+import { useUser } from "../hooks/useUser";
+import { useFriendRequests } from "../hooks/useFriendRequest";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { AppStackParams, AppStackRoutes } from "../navigations/enums/routes";
-import { useUser } from "../hooks/useUser";
+import { AppStackParams } from "../navigations/enums/routes";
 
-export const FriendsScreen = () => {
-  const { user } = useAuth();
-  const { user: userData, isLoading: loadingUserData } = useUser(user?.uid);
-  const { isLoading: loadingFriends, getFriendsByIds } = useUser(user?.uid);
-  const [search, setSearch] = useState("");
-  const { colors, mode } = useTheme();
+export const AddFriends = () => {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParams>>();
+  const { colors, mode } = useTheme();
+  const [search, setSearch] = useState("");
+  const { user } = useAuth();
+  const { allUsers, isLoading, user: userData } = useUser();
+  const { sendRequest, isSending, getUserSenRequest, sentRequestsLoading } =
+    useFriendRequests(user?.uid);
 
-  const friends = getFriendsByIds(userData?.friends);
+  const hasSentRequest = (toUid: string) =>
+    getUserSenRequest?.some((req) => req.to === toUid);
 
-  const filteredFriends = friends?.data?.filter((u) =>
-    u.username?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredUsers = allUsers
+    ?.filter((u) => u.uid !== user?.uid && userData?.friends?.includes(u.uid))
+    .filter((u) => u.username?.toLowerCase().includes(search.toLowerCase()));
+
+  const handleSendRequest = async (toUid: string) => {
+    try {
+      await sendRequest({ from: user?.uid ?? "", to: toUid });
+      Alert.alert("Invitation envoyée !");
+    } catch (err) {
+      Alert.alert("Erreur", "Impossible d’envoyer l’invitation.");
+    }
+  };
 
   return (
     <SafeAreaWrapper style={{ flex: 1 }}>
       <View style={styles.header}>
-        <Text style={styles.title}> Mes amis</Text>
-        <View style={styles.icons}>
-          <Text onPress={() => navigation.navigate(AppStackRoutes.ADD_FRIENDS)}>
-            Ajouter
-          </Text>
-        </View>
-        <View style={styles.icons}>
-          <Text
-            onPress={() =>
-              navigation.navigate(AppStackRoutes.FRIENDS_REQUEST_LIST)
-            }
-          >
-            Voir les demandes
-          </Text>
-        </View>
+        <Text style={styles.title}>Ajouter des amis</Text>
       </View>
 
       <View style={styles.container}>
         <TextInput
-          placeholder="Rechercher un ami..."
+          placeholder="Rechercher un utilisateur..."
           placeholderTextColor={mode === "dark" ? "#aaa" : "#666"}
           value={search}
           onChangeText={setSearch}
@@ -65,11 +66,11 @@ export const FriendsScreen = () => {
           ]}
         />
 
-        {loadingUserData || loadingFriends ? (
+        {isLoading ? (
           <ActivityIndicator size="large" color={colors.primary} />
         ) : (
           <FlatList
-            data={filteredFriends}
+            data={filteredUsers}
             keyExtractor={(item) => item.uid}
             contentContainerStyle={{ paddingBottom: 100 }}
             renderItem={({ item }) => (
@@ -80,9 +81,29 @@ export const FriendsScreen = () => {
                   }}
                   style={styles.avatar}
                 />
-                <Text style={[styles.name, { color: colors.text }]}>
-                  {item.username}
-                </Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.name, { color: colors.text }]}>
+                    {item.username}
+                  </Text>
+                </View>
+                {sentRequestsLoading ? (
+                  <ActivityIndicator size="small" color={colors.primary} />
+                ) : hasSentRequest(item.uid) ? (
+                  <Text style={{ color: colors.primary, fontWeight: "600" }}>
+                    Invitation envoyée
+                  </Text>
+                ) : (
+                  <TouchableOpacity
+                    onPress={() => handleSendRequest(item.uid)}
+                    disabled={isLoading || isSending}
+                  >
+                    <Ionicons
+                      name="person-add"
+                      size={24}
+                      color={colors.primary}
+                    />
+                  </TouchableOpacity>
+                )}
               </View>
             )}
           />
@@ -114,8 +135,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 16,
-    padding: 24,
+    paddingLeft: 24,
+    paddingRight: 24,
   },
   icons: {
     flexDirection: "row",

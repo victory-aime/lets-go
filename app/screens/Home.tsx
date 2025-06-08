@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, TouchableOpacity } from "react-native";
 import { View, Text } from "@/app/theme/Theme";
 import Animated, {
   useSharedValue,
@@ -14,6 +14,8 @@ import { useNavigation } from "@react-navigation/native";
 import { AppStackParams, AppStackRoutes } from "@/app/navigations/enums/routes";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useTheme } from "@/app/theme/context/ThemeProvider";
+import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaWrapper } from "@/components/safe-area";
 
 const ONE_HOUR_MS = 3600 * 1000;
 
@@ -67,59 +69,78 @@ export const Home: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Animated.View
-        style={[
-          styles.card,
-          animatedStyle,
-          { backgroundColor: colors.primary, shadowColor: colors.background },
-        ]}
+    <SafeAreaWrapper style={styles.container}>
+      <TouchableOpacity
+        style={[styles.notificationIcon]}
+        onPress={() => navigation.navigate(AppStackRoutes.NOTIFICATIONS)}
       >
-        <Text style={styles.title}>
-          Bienvenue {user?.isAnonymous ? "Invité" : "Utilisateur"}
-        </Text>
-        <Text style={[styles.uid, { color: colors.secondary }]}>
-          Ton ID : {user?.uid}
-        </Text>
-
-        {user?.isAnonymous && timeLeft > 0 && (
-          <View
-            style={[styles.timerContainer, { backgroundColor: "transparent" }]}
-          >
-            <Text
-              style={{ fontSize: 18, marginBottom: 5, color: colors.white }}
-            >
-              Ton accès anonyme expire dans :
-            </Text>
-            <Text style={[styles.timerCount, { color: colors.pink }]}>
-              {formatTime(timeLeft)}
-            </Text>
-          </View>
-        )}
-
-        {user?.isAnonymous && timeLeft === 0 && (
-          <Text style={[styles.expiredText, { color: colors.error }]}>
-            Ton temps anonyme est écoulé, merci de te reconnecter !
-          </Text>
-        )}
-      </Animated.View>
-      <View
-        style={[styles.buttonContainer, { paddingRight: 18, paddingLeft: 18 }]}
-      >
-        <BaseButton
-          title={"Je suis chaud 🔥"}
-          onPress={() => navigation.navigate(AppStackRoutes.HOT_ACTIONS)}
+        <Ionicons
+          name="notifications-outline"
+          size={26}
+          color={colors.primary}
         />
+      </TouchableOpacity>
+      <View style={{ alignItems: "center", justifyContent: "center", flex: 1 }}>
+        <Animated.View
+          style={[
+            styles.card,
+            animatedStyle,
+            {
+              backgroundColor: colors.primary,
+              shadowColor: colors.background,
+            },
+          ]}
+        >
+          <Text style={styles.title}>
+            Bienvenue {user?.isAnonymous ? "Invité" : "Utilisateur"}
+          </Text>
+          <Text style={[styles.uid, { color: colors.secondary }]}>
+            Ton ID : {user?.uid}
+          </Text>
+
+          {user?.isAnonymous && timeLeft > 0 && (
+            <View
+              style={[
+                styles.timerContainer,
+                { backgroundColor: "transparent" },
+              ]}
+            >
+              <Text
+                style={{ fontSize: 18, marginBottom: 5, color: colors.white }}
+              >
+                Ton accès anonyme expire dans :
+              </Text>
+              <Text style={[styles.timerCount, { color: colors.pink }]}>
+                {formatTime(timeLeft)}
+              </Text>
+            </View>
+          )}
+
+          {user?.isAnonymous && timeLeft === 0 && (
+            <Text style={[styles.expiredText, { color: colors.error }]}>
+              Ton temps anonyme est écoulé, merci de te reconnecter !
+            </Text>
+          )}
+        </Animated.View>
+        <View
+          style={[
+            styles.buttonContainer,
+            { paddingRight: 18, paddingLeft: 18 },
+          ]}
+        >
+          <BaseButton
+            title={"Je suis chaud 🔥"}
+            onPress={() => navigation.navigate(AppStackRoutes.HOT_ACTIONS)}
+          />
+        </View>
       </View>
-    </View>
+    </SafeAreaWrapper>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
     padding: 16,
   },
   card: {
@@ -131,6 +152,19 @@ const styles = StyleSheet.create({
     shadowRadius: 14,
     elevation: 12,
   },
+  notificationIcon: {
+    alignItems: "flex-end",
+    justifyContent: "flex-end",
+    borderRadius: 50,
+    padding: 8,
+    margin: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+
   title: {
     fontSize: 28,
     fontWeight: "700",

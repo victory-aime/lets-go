@@ -3,21 +3,40 @@ import { TouchableOpacity, FlatList, StyleSheet, Platform } from "react-native";
 import { View, Text } from "@/app/theme/Theme";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import Animated, { FadeIn, ZoomIn, ZoomOut } from "react-native-reanimated";
-import { useNavigation } from "@react-navigation/native";
-import { AppStackParams } from "../navigations/enums/routes";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import {
+  AppStackcreenProps,
+  AppStackRoutes,
+  TabRouteParams,
+} from "../navigations/enums/routes";
 import ConfettiCannon from "react-native-confetti-cannon";
 import { useTheme } from "../theme/context/ThemeProvider";
+import { useUser } from "../hooks/useUser";
+import { useAuth } from "../context/AuthContext";
+import { useNotifications } from "../hooks/useNotifications";
+import { NotificationPayload } from "@/app/services/notification.service";
+import { useEventService } from "../hooks/useEvents";
+import { useTypedNavigation } from "../hooks/useTypedNavigation";
 
-const mockFriends = ["Sarah", "Amine", "Léa", "Lucas", "Nina"];
+export const PlanDetailsScreen = ({
+  route,
+}: AppStackcreenProps<AppStackRoutes.PLAN_DETAILS>) => {
+  const navigation = useTypedNavigation<TabRouteParams>();
 
-export const PlanDetailsScreen = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<AppStackParams>>();
   const { colors } = useTheme();
+  const { user } = useAuth();
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [date, setDate] = useState<Date | null>(null);
   const [showPicker, setShowPicker] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+
+  const { sendNotif, saveNotif } = useNotifications();
+  const { createEvent } = useEventService();
+  const { getFriendsByIds, user: userData } = useUser(user?.uid);
+  const friends = getFriendsByIds(userData?.friends);
+
+  const filteredFriends = friends?.data?.filter((u) =>
+    u.username?.toLowerCase()
+  );
 
   const toggleFriend = (name: string) => {
     setSelectedFriends((prev) =>
@@ -25,11 +44,56 @@ export const PlanDetailsScreen = () => {
     );
   };
 
-  const handleConfirm = () => {
-    setConfirmed(true);
-    setTimeout(() => {
-      navigation.popToTop();
-    }, 4000);
+  const handleConfirm = async () => {
+    if (!user || !userData) return;
+
+    try {
+      // Étape 1 – Mapper les usernames vers les uids
+      const invitedUsers = friends?.data?.filter((u) =>
+        selectedFriends.includes(u.username)
+      );
+      const invitedUserIds = invitedUsers?.map((u) => u.uid) ?? [];
+
+      // Étape 2 – Créer l'événement dans Firestore
+      const event = await createEvent.mutateAsync({
+        title: route.params.reason,
+        date: date?.toISOString() ?? new Date().toISOString(),
+        createdBy: user.uid,
+        invitedUserIds,
+        createdAt: new Date(),
+      });
+
+      // Étape 3 – Notifications
+      if (invitedUsers) {
+        for (const u of invitedUsers) {
+          if (!u.pushToken) {
+            console.warn(`Aucun pushToken pour ${u.username}`);
+            continue;
+          }
+          const message: NotificationPayload = {
+            title: "🎉 Nouvelle invitation !",
+            body: `${userData.username} t’a invité à un plan !`,
+            type: "invite",
+            data: { eventId: event.id },
+          };
+
+          try {
+            await saveNotif({ to: u.uid, message });
+            await sendNotif({ token: u.pushToken, to: u.uid, message });
+          } catch (notifError) {
+            console.error(`Erreur notification ${u.username}:`, notifError);
+          }
+        }
+      }
+
+      // Étape 4 – Animation de confirmation
+      setConfirmed(true);
+      setTimeout(() => {
+        navigation.popToTop();
+      }, 4000);
+    } catch (error) {
+      console.error("Erreur lors de la confirmation du plan :", error);
+    }
   };
 
   return (
@@ -52,23 +116,26 @@ export const PlanDetailsScreen = () => {
             👥 Avec qui tu veux y aller ?
           </Animated.Text>
           <FlatList
-            data={mockFriends}
-            keyExtractor={(item) => item}
+            data={filteredFriends}
+            keyExtractor={(item) => item.uid}
             renderItem={({ item }) => (
               <TouchableOpacity
                 style={[
                   styles.friendItem,
-                  selectedFriends.includes(item) && styles.selectedFriend,
+                  selectedFriends.includes(item.username) &&
+                    styles.selectedFriend,
                 ]}
-                onPress={() => toggleFriend(item)}
+                onPress={() => toggleFriend(item.username)}
               >
                 <Text
                   style={[
                     styles.friendText,
-                    selectedFriends.includes(item) && styles.selectedFriendText,
+                    selectedFriends.includes(item.username) && {
+                      color: colors.white,
+                    },
                   ]}
                 >
-                  {item}
+                  {item.username}
                 </Text>
               </TouchableOpacity>
             )}

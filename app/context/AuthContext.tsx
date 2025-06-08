@@ -6,7 +6,12 @@ import React, {
   useContext,
 } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { auth } from "../services/firebase";
+import { auth } from "../services/firebase.service";
+import {
+  registerForPushNotificationsAsync,
+  NotificationHandler,
+} from "../services/notification.service";
+import { updateUser } from "../services/users.service";
 
 // Create AuthContext
 interface AuthContextType {
@@ -29,6 +34,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     return () => unsubscribe();
   }, []);
+
+  // Dans useEffect après que le user est authentifié :
+  useEffect(() => {
+    NotificationHandler();
+    const savePushToken = async () => {
+      const token = await registerForPushNotificationsAsync();
+      if (token && user) {
+        await updateUser(user.uid, { pushToken: token });
+      }
+    };
+
+    if (user?.uid) {
+      savePushToken();
+    }
+  }, [user?.uid]);
 
   return (
     <AuthContext.Provider value={{ user }}>{children}</AuthContext.Provider>

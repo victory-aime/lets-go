@@ -5,19 +5,24 @@ import { View, Text } from "@/app/theme/Theme";
 import { useTheme } from "@/app/theme/context/ThemeProvider";
 import { SafeAreaWrapper } from "@/components/safe-area";
 import { useAuth } from "../context/AuthContext";
-import { auth } from "../services/firebase";
+import { auth } from "../services/firebase.service";
+import { useUser } from "../hooks/useUser";
 
 export const ProfileScreen = () => {
   const { colors } = useTheme();
-  const { user } = useAuth();
-
-  const isGuest = !user?.emailVerified && !user?.providerData.length;
+  const { user: data } = useAuth();
+  const { user, updateUser } = useUser(data?.uid);
+  const isGuest = user?.isAnonymous;
+  console.log("user", user);
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      await updateUser({
+        uid: data?.uid ?? "",
+        data: { status: "offline" },
+      });
       Alert.alert("Déconnecté", "Vous avez été déconnecté avec succès.");
-      // Rediriger vers l'écran de login si nécessaire
     } catch (error) {
       Alert.alert("Erreur", "Impossible de se déconnecter.");
     }
@@ -29,13 +34,13 @@ export const ProfileScreen = () => {
         <Image
           source={{
             uri:
-              user?.photoURL ??
+              //user?.photoURL ??
               "https://ui-avatars.com/api/?name=Invité&background=random",
           }}
           style={styles.avatar}
         />
         <Text style={[styles.name, { color: colors.text }]}>
-          {user?.displayName ?? user?.email ?? "Invité"}
+          {user?.username ?? "Invité"}
         </Text>
         <Text style={[styles.email, { color: colors.text }]}>
           {user?.email ?? "Mode invité"}

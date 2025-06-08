@@ -9,16 +9,18 @@ import {
 import { View, Text } from "@/app/theme/Theme";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { useTheme } from "@/app/theme/context/ThemeProvider";
-import { loginAnonymously } from "@/app/services/login";
-import { useGoogleAuth } from "@/app/utils/google-auth";
+import { loginAnonymously } from "@/app/services/login.service";
+import { useGoogleAuth } from "@/app/services/google-auth.service";
 import { FontAwesome, AntDesign } from "@expo/vector-icons";
-import { auth } from "@/app/services/firebase";
+import { auth } from "@/app/services/firebase.service";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { AuthRoutes, AuthStackParams } from "@/app/navigations/enums/routes";
+import { useUser } from "@/app/hooks/useUser";
 
 export const Login = () => {
   const { colors } = useTheme();
+  const { createUser } = useUser();
   const navigation =
     useNavigation<NativeStackNavigationProp<AuthStackParams>>();
   const [email, setEmail] = useState("");
@@ -28,7 +30,8 @@ export const Login = () => {
 
   const handleEmailLogin = async () => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const response = await signInWithEmailAndPassword(auth, email, password);
+      await createUser(response.user);
     } catch (error: any) {
       Alert.alert("Erreur", error.message);
     }
@@ -38,6 +41,7 @@ export const Login = () => {
     try {
       const user = await loginAnonymously();
       console.log("Connecté anonymement :", user.uid);
+      await createUser(user);
     } catch (err) {
       console.error("Erreur auth anonyme :", err);
     }

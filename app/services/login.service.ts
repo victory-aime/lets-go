@@ -1,6 +1,6 @@
 // services/authService.ts
 import { signInAnonymously } from "firebase/auth";
-import { auth } from "./firebase";
+import { auth } from "./firebase.service";
 
 export async function loginAnonymously() {
   try {
