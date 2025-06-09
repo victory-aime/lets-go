@@ -25,27 +25,27 @@ export const AppNavigator = () => {
         <AppStack.Screen
           name={AppStackRoutes.HOT_ACTIONS}
           component={HotActionsScreen}
-          options={{ presentation: "modal", headerShown: false }}
+          options={{ headerShown: false }}
         />
         <AppStack.Screen
           name={AppStackRoutes.PLAN_DETAILS}
           component={Plan}
-          options={{ presentation: "modal", headerShown: false }}
+          options={{ headerShown: false }}
         />
         <AppStack.Screen
           name={AppStackRoutes.NOTIFICATIONS}
           component={Notifications}
-          options={{ presentation: "modal", headerShown: false }}
+          options={{ headerShown: false }}
         />
         <AppStack.Screen
           name={AppStackRoutes.FRIENDS_REQUEST_LIST}
           component={FriendRequestsScreen}
-          options={{ presentation: "modal", headerShown: false }}
+          options={{ headerShown: false }}
         />
         <AppStack.Screen
           name={AppStackRoutes.ADD_FRIENDS}
           component={AddFriends}
-          options={{ presentation: "modal", headerShown: false }}
+          options={{ headerShown: false }}
         />
       </AppStack.Navigator>
     </SafeAreaProvider>

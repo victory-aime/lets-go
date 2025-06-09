@@ -71,7 +71,8 @@ export async function getUserNotifications(uid: string) {
   const snapshot = await getDocs(
     query(
       collection(db, COLLECTION_NOTIFICATIONS),
-      where("to", "==", uid)
+      where("to", "==", uid),
+      where("status", "==", "unread")
       //orderBy("createdAt", "desc")
     )
   );

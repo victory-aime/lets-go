@@ -5,16 +5,20 @@ import {
   Alert,
   TouchableOpacity,
   KeyboardAvoidingView,
+  View,
 } from "react-native";
-import { View, Text } from "@/app/theme/Theme";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { useTheme } from "@/app/theme/context/ThemeProvider";
+import { useTheme } from "react-native-paper";
 import { auth } from "@/app/services/firebase.service";
 import { useNavigation } from "@react-navigation/native";
 import { createOrUpdateUser } from "@/app/services/users.service";
+import { BaseButton } from "@/components/base-button/BaseButton";
+import { ButtonSizes } from "@/components/base-button/interface/button";
+import { BaseText, TextVariant, TextWeight } from "@/components/base-text";
+import { SafeAreaWrapper } from "@/components/safe-area";
 
 export const Register = () => {
-  const { colors } = useTheme();
+  const theme = useTheme();
   const navigation = useNavigation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,46 +32,67 @@ export const Register = () => {
       );
       await createOrUpdateUser(response.user);
       Alert.alert("Inscription réussie");
-      navigation.goBack(); // ou directement vers "Home"
+      navigation.goBack();
     } catch (error: any) {
       Alert.alert("Erreur", error.message);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <KeyboardAvoidingView behavior="padding">
-        <Text style={styles.title}>📝 Inscription</Text>
-        <TextInput
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          style={[styles.input, { color: colors.text }]}
-          placeholderTextColor={colors.text + "88"}
-        />
-        <TextInput
-          placeholder="Mot de passe"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-          style={[styles.input, { color: colors.text }]}
-          placeholderTextColor={colors.text + "88"}
-        />
-        <TouchableOpacity
-          onPress={handleRegister}
-          style={[styles.button, { backgroundColor: colors.primary }]}
-        >
-          <Text style={styles.buttonText}>✅ Créer un compte</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={[styles.toggleText, { color: colors.text }]}>
-            🔙 Retour à la connexion
-          </Text>
-        </TouchableOpacity>
-      </KeyboardAvoidingView>
-    </View>
+    <SafeAreaWrapper style={{ flex: 1 }}>
+      <View style={styles.container}>
+        <KeyboardAvoidingView behavior="padding">
+          <View
+            style={{
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 2,
+              marginBottom: 20,
+            }}
+          >
+            <BaseText variant={TextVariant.L} weight={TextWeight.SemiBold}>
+              👋 Rejoins-nous
+            </BaseText>
+            <BaseText>Allez ne traine pas rejoins tes postes👇</BaseText>
+          </View>
+          <TextInput
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            style={[styles.input]}
+          />
+          <TextInput
+            placeholder="Mot de passe"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+            style={[styles.input]}
+          />
+          <BaseButton
+            onPress={handleRegister}
+            size={ButtonSizes.Large}
+            colorsScheme="primary"
+          >
+            Créer un compte
+          </BaseButton>
+          <View style={styles.createAccount}>
+            <BaseText>Vous avez deja un compte? </BaseText>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <BaseText
+                style={{
+                  color: theme.colors.primary,
+                  fontWeight: "bold",
+                }}
+              >
+                Connectez-vous
+              </BaseText>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </View>
+    </SafeAreaWrapper>
   );
 };
 
@@ -77,11 +102,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
   },
-  title: {
-    fontSize: 26,
-    fontWeight: "bold",
-    marginBottom: 32,
-    textAlign: "center",
+  createAccount: {
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    marginTop: 20,
   },
   input: {
     borderWidth: 1,
@@ -89,23 +114,5 @@ const styles = StyleSheet.create({
     padding: 14,
     fontSize: 16,
     marginBottom: 14,
-  },
-  button: {
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    marginVertical: 8,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  toggleText: {
-    marginTop: 20,
-    textAlign: "center",
-    fontWeight: "500",
   },
 });

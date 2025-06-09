@@ -1,9 +1,14 @@
 import React from "react";
-import { FlatList, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  Text,
+} from "react-native";
 import { useAuth } from "@/app/context/AuthContext";
-import { View, Text } from "@/app/theme/Theme";
 import { Ionicons } from "@expo/vector-icons";
-import { useTheme } from "@/app/theme/context/ThemeProvider";
+import { useTheme } from "react-native-paper";
 import { useFriendRequests } from "../hooks/useFriendRequest";
 import { useNotifications } from "../hooks/useNotifications";
 import { useUser } from "../hooks/useUser";
@@ -51,7 +56,7 @@ export const FriendRequestsScreen: React.FC = () => {
         contentContainerStyle={{ paddingBottom: 20 }}
         renderItem={({ item }) => (
           <View style={[styles.card]}>
-            <Text style={[styles.uid, { color: colors.text }]}>
+            <Text style={[styles.uid, { color: colors.onSurface }]}>
               De : {extractUserName(item.from)}
             </Text>
             <View style={styles.actions}>
@@ -71,7 +76,7 @@ export const FriendRequestsScreen: React.FC = () => {
           </View>
         )}
         ListEmptyComponent={
-          <Text style={[styles.empty, { color: colors.text }]}>
+          <Text style={[styles.empty, { color: colors.onSurface }]}>
             Aucune demande pour le moment
           </Text>
         }

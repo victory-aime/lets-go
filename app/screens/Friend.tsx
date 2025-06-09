@@ -5,9 +5,10 @@ import {
   TextInput,
   Image,
   ActivityIndicator,
+  View,
+  Text,
 } from "react-native";
-import { View, Text } from "@/app/theme/Theme";
-import { useTheme } from "@/app/theme/context/ThemeProvider";
+import { useTheme } from "react-native-paper";
 import { SafeAreaWrapper } from "@/components/safe-area";
 import { useAuth } from "@/app/context/AuthContext";
 import { useNavigation } from "@react-navigation/native";

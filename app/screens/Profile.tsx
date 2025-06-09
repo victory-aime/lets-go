@@ -1,8 +1,14 @@
 import React from "react";
-import { StyleSheet, Image, Alert, TouchableOpacity } from "react-native";
+import {
+  StyleSheet,
+  Image,
+  Alert,
+  TouchableOpacity,
+  View,
+  Text,
+} from "react-native";
 import { signOut } from "firebase/auth";
-import { View, Text } from "@/app/theme/Theme";
-import { useTheme } from "@/app/theme/context/ThemeProvider";
+import { useTheme } from "react-native-paper";
 import { SafeAreaWrapper } from "@/components/safe-area";
 import { useAuth } from "../context/AuthContext";
 import { auth } from "../services/firebase.service";
@@ -39,10 +45,10 @@ export const ProfileScreen = () => {
           }}
           style={styles.avatar}
         />
-        <Text style={[styles.name, { color: colors.text }]}>
+        <Text style={[styles.name, { color: colors.onSurface }]}>
           {user?.username ?? "Invité"}
         </Text>
-        <Text style={[styles.email, { color: colors.text }]}>
+        <Text style={[styles.email, { color: colors.onSurface }]}>
           {user?.email ?? "Mode invité"}
         </Text>
       </View>

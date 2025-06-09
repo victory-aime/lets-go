@@ -14,8 +14,6 @@
     },
     "ios": {
       "supportsTablet": true,
-      "googleServicesFile": "./GoogleService-Info.plist",
-      "bundleIdentifier": "com.victoryaime.coursescolocapp",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }

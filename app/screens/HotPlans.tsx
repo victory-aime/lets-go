@@ -5,9 +5,10 @@ import {
   StyleSheet,
   Image,
   ActivityIndicator,
+  View,
+  Text,
 } from "react-native";
-import { View, Text } from "@/app/theme/Theme";
-import { useTheme } from "../theme/context/ThemeProvider";
+import { useTheme } from "react-native-paper";
 import { SafeAreaWrapper } from "@/components/safe-area";
 import { useEventService } from "../hooks/useEvents";
 import { useAuth } from "../context/AuthContext";
@@ -52,7 +53,12 @@ export const HotPlansScreen = () => {
               >
                 <Image source={{ uri: item.image }} style={styles.image} />
                 <View style={styles.cardContent}>
-                  <Text style={[styles.planTitle, { color: colors.text }]}>
+                  <Text
+                    style={[
+                      styles.planTitle,
+                      { color: colors.onSecondaryContainer },
+                    ]}
+                  >
                     {item.title}
                   </Text>
                   <Text

@@ -7,9 +7,9 @@ import {
   Image,
   ActivityIndicator,
   Alert,
+  View,
 } from "react-native";
-import { View, Text } from "@/app/theme/Theme";
-import { useTheme } from "@/app/theme/context/ThemeProvider";
+import { useTheme } from "react-native-paper";
 import { SafeAreaWrapper } from "@/components/safe-area";
 import { useAuth } from "@/app/context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
@@ -18,6 +18,7 @@ import { useFriendRequests } from "../hooks/useFriendRequest";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { AppStackParams } from "../navigations/enums/routes";
+import { BaseText } from "@/components/base-text";
 
 export const AddFriends = () => {
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParams>>();
@@ -47,7 +48,7 @@ export const AddFriends = () => {
   return (
     <SafeAreaWrapper style={{ flex: 1 }}>
       <View style={styles.header}>
-        <Text style={styles.title}>Ajouter des amis</Text>
+        <BaseText style={styles.title}>Ajouter des amis</BaseText>
       </View>
 
       <View style={styles.container}>
@@ -82,16 +83,18 @@ export const AddFriends = () => {
                   style={styles.avatar}
                 />
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.name, { color: colors.text }]}>
+                  <BaseText style={[styles.name, { color: colors.text }]}>
                     {item.username}
-                  </Text>
+                  </BaseText>
                 </View>
                 {sentRequestsLoading ? (
                   <ActivityIndicator size="small" color={colors.primary} />
                 ) : hasSentRequest(item.uid) ? (
-                  <Text style={{ color: colors.primary, fontWeight: "600" }}>
+                  <BaseText
+                    style={{ color: colors.primary, fontWeight: "600" }}
+                  >
                     Invitation envoyée
-                  </Text>
+                  </BaseText>
                 ) : (
                   <TouchableOpacity
                     onPress={() => handleSendRequest(item.uid)}

@@ -1,45 +1,30 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, TouchableOpacity } from "react-native";
-import { View, Text } from "@/app/theme/Theme";
-import Animated, {
-  useSharedValue,
-  withTiming,
-  useAnimatedStyle,
-  Easing,
-} from "react-native-reanimated";
-import { useAuth } from "../context/AuthContext";
-import { BaseButton } from "@/components/BaseButton";
-import { DEVICE_WIDTH } from "../utils/scale";
+import { View, StyleSheet } from "react-native";
+import { Text, Button, Card, Avatar, useTheme } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
-import { AppStackParams, AppStackRoutes } from "@/app/navigations/enums/routes";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useTheme } from "@/app/theme/context/ThemeProvider";
-import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "../context/AuthContext";
+import { useUser } from "../hooks/useUser";
+import {
+  AppStackParams,
+  AppStackRoutes,
+  TabRoutes,
+} from "@/app/navigations/enums/routes";
 import { SafeAreaWrapper } from "@/components/safe-area";
+import { BaseText } from "@/components/base-text";
+import { BaseIcon } from "@/components/base-icon/BaseIcon";
+import { Ionicons } from "@expo/vector-icons";
+import { BaseFabButton } from "@/components/fab-button/FabButton";
 
 const ONE_HOUR_MS = 3600 * 1000;
 
 export const Home: React.FC = () => {
+  const { colors } = useTheme();
   const { user } = useAuth();
+  const { user: currentUser } = useUser(user?.uid);
   const navigation = useNavigation<NativeStackNavigationProp<AppStackParams>>();
   const [timeLeft, setTimeLeft] = useState(ONE_HOUR_MS);
-  const fadeAnim = useSharedValue(0);
-  const scaleAnim = useSharedValue(0.8);
-  const { colors } = useTheme();
 
-  // Animation démarrage
-  useEffect(() => {
-    fadeAnim.value = withTiming(1, {
-      duration: 700,
-      easing: Easing.out(Easing.exp),
-    });
-    scaleAnim.value = withTiming(1, {
-      duration: 700,
-      easing: Easing.out(Easing.exp),
-    });
-  }, []);
-
-  // Timer compte à rebours (1h max pour user anonyme)
   useEffect(() => {
     if (user?.isAnonymous) {
       const start = Date.now();
@@ -53,12 +38,6 @@ export const Home: React.FC = () => {
     }
   }, [user]);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: fadeAnim.value,
-    transform: [{ scale: scaleAnim.value }],
-  }));
-
-  // Format mm:ss
   const formatTime = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
     const minutes = Math.floor(totalSeconds / 60);
@@ -69,70 +48,81 @@ export const Home: React.FC = () => {
   };
 
   return (
-    <SafeAreaWrapper style={styles.container}>
-      <TouchableOpacity
-        style={[styles.notificationIcon]}
-        onPress={() => navigation.navigate(AppStackRoutes.NOTIFICATIONS)}
-      >
-        <Ionicons
-          name="notifications-outline"
-          size={26}
+    <SafeAreaWrapper style={{ flex: 1 }}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View style={{ flexDirection: "row", gap: 12 }}>
+            <Avatar.Image
+              source={{
+                uri: "https://ui-avatars.com/api/?name=Invité&background=random",
+              }}
+              size={40}
+            />
+            <View>
+              <BaseText>Salut</BaseText>
+              <BaseText>
+                {user?.isAnonymous ? "Invité" : currentUser?.username || "toi"}{" "}
+                👋
+              </BaseText>
+            </View>
+          </View>
+          <View style={{ flexDirection: "row", gap: 5 }}>
+            <BaseIcon
+              icon={
+                <Ionicons
+                  name="notifications-outline"
+                  color={colors.onPrimary}
+                />
+              }
+              onPress={() => navigation.navigate(AppStackRoutes.NOTIFICATIONS)}
+            />
+            {/* <BaseIcon
+              icon={<Ionicons name="settings" color={colors.onPrimary} />}
+              onPress={() =>
+                navigation.navigate(AppStackRoutes.TABS, {
+                  screen: TabRoutes.PROFILE,
+                })
+              }
+              colorsScheme={"secondary"}
+            /> */}
+          </View>
+        </View>
+
+        <Card style={styles.statusCard} mode="contained">
+          <Card.Title
+            title="Dispo pour un brunch ? 🥞"
+            titleVariant="titleMedium"
+          />
+          <Card.Content>
+            {user?.isAnonymous && timeLeft > 0 ? (
+              <>
+                <Text variant="bodyMedium" style={styles.expireText}>
+                  Ton accès expire dans :
+                </Text>
+                <Text
+                  variant="headlineLarge"
+                  style={{ color: colors.secondary }}
+                >
+                  {formatTime(timeLeft)}
+                </Text>
+              </>
+            ) : user?.isAnonymous && timeLeft === 0 ? (
+              <Text style={{ color: colors.error }}>
+                Ton accès anonyme est expiré, reconnecte-toi !
+              </Text>
+            ) : (
+              <Text variant="bodyMedium" style={{ marginTop: 6 }}>
+                Clique sur le bouton '+' pour prévenir tes potes !
+              </Text>
+            )}
+          </Card.Content>
+        </Card>
+
+        <BaseFabButton
+          label={"Je suis chaud"}
+          onPress={() => navigation.navigate(AppStackRoutes.HOT_ACTIONS)}
           color={colors.primary}
         />
-      </TouchableOpacity>
-      <View style={{ alignItems: "center", justifyContent: "center", flex: 1 }}>
-        <Animated.View
-          style={[
-            styles.card,
-            animatedStyle,
-            {
-              backgroundColor: colors.primary,
-              shadowColor: colors.background,
-            },
-          ]}
-        >
-          <Text style={styles.title}>
-            Bienvenue {user?.isAnonymous ? "Invité" : "Utilisateur"}
-          </Text>
-          <Text style={[styles.uid, { color: colors.secondary }]}>
-            Ton ID : {user?.uid}
-          </Text>
-
-          {user?.isAnonymous && timeLeft > 0 && (
-            <View
-              style={[
-                styles.timerContainer,
-                { backgroundColor: "transparent" },
-              ]}
-            >
-              <Text
-                style={{ fontSize: 18, marginBottom: 5, color: colors.white }}
-              >
-                Ton accès anonyme expire dans :
-              </Text>
-              <Text style={[styles.timerCount, { color: colors.pink }]}>
-                {formatTime(timeLeft)}
-              </Text>
-            </View>
-          )}
-
-          {user?.isAnonymous && timeLeft === 0 && (
-            <Text style={[styles.expiredText, { color: colors.error }]}>
-              Ton temps anonyme est écoulé, merci de te reconnecter !
-            </Text>
-          )}
-        </Animated.View>
-        <View
-          style={[
-            styles.buttonContainer,
-            { paddingRight: 18, paddingLeft: 18 },
-          ]}
-        >
-          <BaseButton
-            title={"Je suis chaud 🔥"}
-            onPress={() => navigation.navigate(AppStackRoutes.HOT_ACTIONS)}
-          />
-        </View>
       </View>
     </SafeAreaWrapper>
   );
@@ -140,59 +130,22 @@ export const Home: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
+    padding: 24,
     flex: 1,
-    padding: 16,
+    justifyContent: "flex-start",
   },
-  card: {
-    width: DEVICE_WIDTH * 0.9,
-    borderRadius: 20,
-    padding: 30,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 14,
-    elevation: 12,
-  },
-  notificationIcon: {
-    alignItems: "flex-end",
-    justifyContent: "flex-end",
-    borderRadius: 50,
-    padding: 8,
-    margin: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "white",
-    marginBottom: 10,
-    textAlign: "center",
-  },
-  uid: {
-    fontWeight: "500",
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  timerContainer: {
+  header: {
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    marginBottom: 24,
+  },
+  statusCard: {
     marginBottom: 20,
+    borderRadius: 16,
   },
-
-  timerCount: {
-    fontSize: 32,
-    fontWeight: "700",
-  },
-  expiredText: {
-    fontSize: 18,
-    fontWeight: "600",
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  buttonContainer: {
-    marginTop: 10,
+  expireText: {
+    marginBottom: 8,
   },
 });

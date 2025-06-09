@@ -4,51 +4,55 @@ import {
   FlatList,
   StyleSheet,
   TouchableOpacity,
+  Text,
+  View,
 } from "react-native";
-import { Text, View } from "@/app/theme/Theme";
-import { Ionicons } from "@expo/vector-icons";
-import { useTheme } from "@/app/theme/context/ThemeProvider";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
+import { useTheme } from "react-native-paper";
 import { useNotifications } from "@/app/hooks/useNotifications";
 import { useAuth } from "@/app/context/AuthContext";
 import { SafeAreaWrapper } from "@/components/safe-area";
+import { BackButton } from "@/components/back-button/BackButton";
+import { useNavigation } from "@react-navigation/native";
+import { BaseText } from "@/components/base-text";
+import {
+  LineHeightType,
+  TextVariant,
+  TextWeight,
+} from "@/components/base-text/interface/base-text";
+import { getOpacity } from "../theme/colors";
+import { BaseIcon } from "@/components/base-icon/BaseIcon";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 
 export const Notifications = () => {
-  const { colors, mode } = useTheme();
+  const { colors } = useTheme();
   const { user } = useAuth();
   const { notifications, isLoading, markAsRead } = useNotifications(user?.uid);
+  const navigation = useNavigation();
 
   const renderItem = ({ item }: any) => {
     const isUnread = item.status !== "read";
-
     return (
       <>
-        {isUnread ? (
+        {isUnread && (
           <TouchableOpacity
             style={[
               styles.notificationCard,
               {
                 backgroundColor: isUnread ? colors.surface : "transparent",
-                borderColor: mode === "dark" ? "#333" : "#ddd",
+                borderColor: getOpacity(colors.onSurface, 0.3),
               },
             ]}
             onPress={() => isUnread && markAsRead(item.id)}
           >
-            <Ionicons
-              name="notifications-outline"
-              size={20}
-              color={colors.primary}
-              style={{ marginRight: 12 }}
-            />
-            <View style={{ flex: 1, gap: 3 }}>
-              <Text style={[styles.message, { color: colors.text }]}>
+            <View style={{ flex: 1, gap: 5 }}>
+              <BaseText variant={TextVariant.L} weight={TextWeight.SemiBold}>
                 {item.title}
-              </Text>
-              <Text style={[styles.message, { color: colors.text }]}>
-                {item.body}
-              </Text>
-              <Text style={[styles.time, { color: colors.primary }]}>
+              </BaseText>
+              <BaseText>{item.body}</BaseText>
+              <BaseText color={colors.primary}>
                 {new Date(item.createdAt?.toDate?.()).toLocaleString()}
-              </Text>
+              </BaseText>
             </View>
             {isUnread && (
               <View
@@ -56,10 +60,50 @@ export const Notifications = () => {
               />
             )}
           </TouchableOpacity>
-        ) : (
-          <Text>Toute les notifs sont lues</Text>
         )}
       </>
+    );
+  };
+
+  const ListEmpty = () => {
+    return (
+      <Animated.View
+        entering={FadeIn.duration(1000)}
+        exiting={FadeOut}
+        style={{
+          position: "absolute",
+          top: "40%",
+          left: 0,
+          right: 0,
+          alignItems: "center",
+          marginTop: 100,
+        }}
+      >
+        <BaseIcon
+          icon={
+            <Ionicons name="notifications-outline" color={colors.onPrimary} />
+          }
+          size={130}
+        />
+        <BaseText
+          variant={TextVariant.H3}
+          weight={TextWeight.Bold}
+          lineHeight={LineHeightType.medium}
+          style={{ marginTop: 20 }}
+        >
+          Aucune Notification trouvee
+        </BaseText>
+        <BaseText
+          variant={TextVariant.S}
+          weight={TextWeight.Regular}
+          lineHeight={LineHeightType.mediumSmall}
+          numberOfLines={2}
+          style={{ textAlign: "center", marginTop: 8 }}
+        >
+          Vous avez aucune notification actuellement.Veuillez revenir plus tard
+          !
+        </BaseText>
+      </Animated.View>
     );
   };
 
@@ -73,14 +117,19 @@ export const Notifications = () => {
         </View>
       ) : (
         <View style={styles.container}>
-          <Text style={styles.title}>🔔 Notifications</Text>
-
+          <BackButton
+            showLeftIcon
+            title="Notifications"
+            onPressBackIcon={() => navigation.goBack()}
+          />
           <FlatList
             data={notifications}
             keyExtractor={(item) => item.id}
             renderItem={renderItem}
-            ListEmptyComponent={() => <Text>NoData</Text>}
-            contentContainerStyle={{ paddingBottom: 100 }}
+            ListEmptyComponent={ListEmpty}
+            contentContainerStyle={{
+              paddingBottom: 100,
+            }}
           />
         </View>
       )}
@@ -91,11 +140,7 @@ export const Notifications = () => {
 const styles = StyleSheet.create({
   container: {
     padding: 24,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    marginBottom: 16,
+    flex: 1,
   },
   notificationCard: {
     flexDirection: "row",
@@ -104,14 +149,6 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     marginBottom: 12,
-  },
-  message: {
-    fontSize: 16,
-    fontWeight: "500",
-  },
-  time: {
-    fontSize: 12,
-    marginTop: 4,
   },
   badge: {
     width: 10,

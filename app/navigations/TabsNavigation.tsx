@@ -15,20 +15,19 @@ import { ProfileScreen } from "../screens/Profile";
 import { TabRouteParams, TabRoutes } from "./enums/routes";
 import Colors from "../../constants/Colors";
 import { Home } from "../screens/Home";
-import { useTheme } from "../theme/context/ThemeProvider";
+import { useTheme } from "react-native-paper";
 import { HotPlansScreen } from "../screens/HotPlans";
 import { FriendsScreen } from "../screens/Friend";
 
 const Tab = createBottomTabNavigator<TabRouteParams>();
 
 const TabsNavigation = () => {
-  const colorScheme = useColorScheme();
   const { colors } = useTheme();
   return (
     <Tab.Navigator
       screenOptions={{
         tabBarHideOnKeyboard: true,
-        tabBarActiveTintColor: Colors[colorScheme ?? "light"].primary,
+        tabBarActiveTintColor: colors.primary,
         tabBarStyle: [
           styles.tabBarStyle,
           { backgroundColor: colors.background },
@@ -40,7 +39,7 @@ const TabsNavigation = () => {
         name={TabRoutes.DASHBOARD}
         component={Home}
         options={{
-          title: "Tab one",
+          title: "Accueil",
           tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
         }}
       />
@@ -48,7 +47,7 @@ const TabsNavigation = () => {
         name={TabRoutes.FRIENDS}
         component={FriendsScreen}
         options={{
-          title: "Tab Two",
+          title: "Mes amis",
           tabBarIcon: ({ color }) => <TabBarIcon name="team" color={color} />,
         }}
       />
@@ -56,7 +55,7 @@ const TabsNavigation = () => {
         name={TabRoutes.HOT_PLANS}
         component={HotPlansScreen}
         options={{
-          title: "Tab Two",
+          title: "Mes plans",
           tabBarIcon: ({ color }) => <TabBarIcon name="tag" color={color} />,
         }}
       />
@@ -64,7 +63,7 @@ const TabsNavigation = () => {
         name={TabRoutes.PROFILE}
         component={ProfileScreen}
         options={{
-          title: "Tab Two",
+          title: "Profile",
           tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
         }}
       />

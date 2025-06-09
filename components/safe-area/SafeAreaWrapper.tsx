@@ -1,9 +1,8 @@
 import React from "react";
-import { ViewStyle, StyleSheet } from "react-native";
+import { ViewStyle, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SafeAreaWrapperProps } from "./interface/safe-area";
-import { useTheme } from "@/app/theme/context/ThemeProvider";
-import { View } from "@/app/theme/Theme";
+import { useTheme } from "react-native-paper";
 
 const SafeAreaWrapper: React.FC<SafeAreaWrapperProps> = ({
   children,
@@ -23,7 +22,7 @@ const SafeAreaWrapper: React.FC<SafeAreaWrapperProps> = ({
     ...StyleSheet.flatten(style),
   };
 
-  return <View style={wrapperStyle}>{children}</View>;
+  return <View style={[wrapperStyle]}>{children}</View>;
 };
 
 export default SafeAreaWrapper;

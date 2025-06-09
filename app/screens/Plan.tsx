@@ -1,15 +1,20 @@
 import React, { useState } from "react";
-import { TouchableOpacity, FlatList, StyleSheet, Platform } from "react-native";
-import { View, Text } from "@/app/theme/Theme";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import Animated, { FadeIn, ZoomIn, ZoomOut } from "react-native-reanimated";
+import {
+  TouchableOpacity,
+  FlatList,
+  StyleSheet,
+  Platform,
+  View,
+  Text,
+} from "react-native";
+import Animated, { ZoomIn, ZoomOut } from "react-native-reanimated";
 import {
   AppStackcreenProps,
   AppStackRoutes,
   TabRouteParams,
 } from "../navigations/enums/routes";
 import ConfettiCannon from "react-native-confetti-cannon";
-import { useTheme } from "../theme/context/ThemeProvider";
+import { useTheme } from "react-native-paper";
 import { useUser } from "../hooks/useUser";
 import { useAuth } from "../context/AuthContext";
 import { useNotifications } from "../hooks/useNotifications";
@@ -17,6 +22,15 @@ import { NotificationPayload } from "@/app/services/notification.service";
 import { useEventService } from "../hooks/useEvents";
 import { useTypedNavigation } from "../hooks/useTypedNavigation";
 import { IUser } from "../services/users.service";
+import { BackButton } from "@/components/back-button/BackButton";
+import { SafeAreaWrapper } from "@/components/safe-area";
+import { BaseText, TextVariant, TextWeight } from "@/components/base-text";
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
+import { Ionicons } from "@expo/vector-icons";
+import { getOpacity } from "../theme/colors";
+import { BaseButton } from "@/components/base-button/BaseButton";
 
 export const Plan = ({
   route,
@@ -26,9 +40,12 @@ export const Plan = ({
   const { colors } = useTheme();
   const { user } = useAuth();
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
-  const [date, setDate] = useState<Date | null>(null);
   const [showPicker, setShowPicker] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+  const [date, setDate] = useState<Date | null>(null);
+  const disabled = !date || selectedFriends.length === 0;
+
+  console.log("disabled", disabled);
 
   const { sendNotif, saveNotif } = useNotifications();
   const { createEvent } = useEventService();
@@ -43,6 +60,17 @@ export const Plan = ({
     setSelectedFriends((prev) =>
       prev.includes(name) ? prev.filter((f) => f !== name) : [...prev, name]
     );
+  };
+
+  const onChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+    if (Platform.OS === "android") {
+      if (event.type === "set" && selectedDate) {
+        setDate(selectedDate);
+      }
+      setShowPicker(false); // toujours fermer sur Android après interaction
+    } else if (Platform.OS === "ios" && selectedDate) {
+      setDate(selectedDate); // ne pas fermer automatiquement sur iOS
+    }
   };
 
   const handleConfirm = async () => {
@@ -73,7 +101,7 @@ export const Plan = ({
           }
           const message: NotificationPayload = {
             title: "🎉 Nouvelle invitation !",
-            body: `${userData.username} t’a invité à un plan !`,
+            body: `${userData.username} t’a invité à ${route.params.reason}`,
             type: "invite",
             data: { eventId: event.id },
           };
@@ -98,128 +126,174 @@ export const Plan = ({
   };
 
   return (
-    <View style={styles.container}>
-      <View
-        style={{
-          alignItems: "center",
-          justifyContent: "flex-start",
-          flexDirection: "row",
-          gap: 5,
-        }}
-      >
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text>⬅️ Retour</Text>
-        </TouchableOpacity>
-      </View>
-      {!confirmed ? (
-        <View style={{ marginTop: 30 }}>
-          <Animated.Text entering={FadeIn}>
-            👥 Avec qui tu veux y aller ?
-          </Animated.Text>
-          <FlatList
-            data={filteredFriends}
-            keyExtractor={(item) => item.uid}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={[
-                  styles.friendItem,
-                  selectedFriends.includes(item.username) &&
-                    styles.selectedFriend,
-                ]}
-                onPress={() => toggleFriend(item.username)}
-              >
-                <Text
-                  style={[
-                    styles.friendText,
-                    selectedFriends.includes(item.username) && {
-                      color: colors.white,
-                    },
-                  ]}
-                >
-                  {item.username}
-                </Text>
-              </TouchableOpacity>
-            )}
-          />
-          <Text style={[{ marginTop: 30 }]}>⏰ À quelle heure ?</Text>
-          <TouchableOpacity
-            onPress={() => setShowPicker(true)}
-            style={styles.timeSelectBtn}
-          >
-            <Text>
-              {date
-                ? date.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })
-                : "Choisir l'heure"}
-            </Text>
-          </TouchableOpacity>
-
-          {showPicker && (
-            <DateTimePicker
-              value={date ?? new Date()}
-              mode="time"
-              display={Platform.OS === "ios" ? "spinner" : "default"}
-              onChange={(e, selectedDate) => {
-                if (selectedDate) {
-                  setDate(selectedDate);
-                }
-                setTimeout(() => {
-                  setShowPicker(false);
-                }, 1000);
-              }}
+    <SafeAreaWrapper style={{ flex: 1 }}>
+      <View style={styles.container}>
+        <BackButton
+          showLeftIcon
+          title="Retour"
+          onPressBackIcon={() => navigation.goBack()}
+        />
+        {!confirmed ? (
+          <View style={{ marginTop: 30 }}>
+            <FlatList
+              data={filteredFriends}
+              keyExtractor={(item) => item.uid}
+              renderItem={({ item }) => (
+                <View>
+                  <BaseText style={{ marginBottom: 20 }}>
+                    Avec qui souhaite tu faire ?{" "}
+                    <BaseText weight={TextWeight.Bold} color={colors.primary}>
+                      {route.params.reason}
+                    </BaseText>
+                  </BaseText>
+                  <TouchableOpacity
+                    style={[
+                      styles.friendItem,
+                      { backgroundColor: getOpacity(colors.onSurface, 0.1) },
+                      selectedFriends.includes(item.username) && {
+                        backgroundColor: colors.primary,
+                      },
+                    ]}
+                    onPress={() => toggleFriend(item.username)}
+                  >
+                    <BaseText
+                      style={{ textTransform: "capitalize" }}
+                      color={
+                        selectedFriends.includes(item.username)
+                          ? colors.onPrimary
+                          : "none"
+                      }
+                    >
+                      {item.username}
+                    </BaseText>
+                  </TouchableOpacity>
+                </View>
+              )}
             />
-          )}
+            <Text style={[{ marginTop: 30 }]}>⏰ À quelle heure ?</Text>
+            <View style={[{ minWidth: "100%" }]}>
+              <TouchableOpacity
+                onPress={() => setShowPicker(true)}
+                activeOpacity={0.8}
+                style={[
+                  {
+                    borderWidth: 1,
+                    borderColor: getOpacity(colors.onSurface, 0.2),
+                    borderRadius: 12,
+                    marginTop: 8,
+                    marginBottom: 10,
+                    height: 60,
+                    paddingLeft: 15,
+                    paddingRight: 18,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  },
+                ]}
+              >
+                <BaseText
+                  variant={TextVariant.M}
+                  color={
+                    date ? colors.onSurface : getOpacity(colors.onSurface, 0.8)
+                  }
+                >
+                  {date
+                    ? date.toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : "Choisir l'heure"}
+                </BaseText>
+                <Ionicons
+                  name="calendar"
+                  size={20}
+                  color={getOpacity(colors.onSurface, 0.2)}
+                />
+              </TouchableOpacity>
+            </View>
 
-          <TouchableOpacity
-            style={[
-              styles.confirmBtn,
-              { backgroundColor: date ? colors.primary : "transparent" },
-            ]}
-            onPress={handleConfirm}
-            disabled={!date}
+            {showPicker && (
+              <>
+                {Platform.OS === "ios" && (
+                  <View>
+                    <DateTimePicker
+                      locale="fr"
+                      value={date ?? new Date()}
+                      mode="time"
+                      display="spinner"
+                      onChange={onChange}
+                    />
+                    <TouchableOpacity
+                      style={styles.confirmBtn}
+                      onPress={() => setShowPicker(false)}
+                    >
+                      <BaseButton colorsScheme={"secondary"}>OK</BaseButton>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                {Platform.OS === "android" && (
+                  <DateTimePicker
+                    locale="fr"
+                    value={date as Date}
+                    mode="time"
+                    display="default"
+                    onChange={onChange}
+                  />
+                )}
+              </>
+            )}
+
+            <BaseButton
+              onPress={handleConfirm}
+              disabled={disabled}
+              colorsScheme={!disabled ? "secondary" : "none"}
+              leftIcon={
+                <Ionicons
+                  name="checkmark-done-outline"
+                  size={24}
+                  color={"white"}
+                />
+              }
+              style={{ marginTop: 20 }}
+            >
+              Confirmer le plan
+            </BaseButton>
+          </View>
+        ) : (
+          <Animated.View
+            entering={ZoomIn.duration(400)}
+            exiting={ZoomOut}
+            style={styles.confirmationContainer}
           >
-            <Text style={styles.confirmText}>✅ Confirmer le plan</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <Animated.View
-          entering={ZoomIn.duration(400)}
-          exiting={ZoomOut}
-          style={styles.confirmationContainer}
-        >
-          <ConfettiCannon
-            count={80}
-            origin={{ x: 200, y: -20 }}
-            fadeOut
-            autoStart
-            explosionSpeed={250}
-          />
-          <Text style={styles.emoji}>🎉</Text>
-          <Text>C’est validé !</Text>
-        </Animated.View>
-      )}
-    </View>
+            <ConfettiCannon
+              count={80}
+              origin={{ x: 200, y: -20 }}
+              fadeOut
+              autoStart
+              explosionSpeed={250}
+            />
+            <Text style={styles.emoji}>🎉</Text>
+            <Text>C’est validé !</Text>
+          </Animated.View>
+        )}
+      </View>
+    </SafeAreaWrapper>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    padding: 24,
+    padding: 18,
     flex: 1,
   },
 
   friendItem: {
-    padding: 14,
-    borderRadius: 10,
-    marginVertical: 6,
-  },
-  selectedFriend: {
-    backgroundColor: "#4CAF50",
-  },
-  friendText: {
-    fontSize: 16,
+    paddingVertical: 18,
+    paddingHorizontal: 18,
+    marginVertical: 8,
+    borderRadius: 14,
+    alignItems: "flex-start",
   },
 
   timeSelectBtn: {
